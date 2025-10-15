@@ -1,4 +1,5 @@
-/** @type {import('next').NextConfig} */
+import path from "path";
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -14,17 +15,11 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     unoptimized: true,
   },
-  // Enable compression
   compress: true,
-  // Optimize production builds
   productionBrowserSourceMaps: false,
-  // Enable React strict mode
   reactStrictMode: true,
-  // Optimize fonts
   optimizeFonts: true,
-  // Enable SWC minification
   swcMinify: true,
-  // Headers for security and caching
   async headers() {
     return [
       {
@@ -45,7 +40,7 @@ const nextConfig = {
           },
         ],
       },
-    ]
+    ];
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -53,6 +48,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-}
+  webpack: (config) => {
+    config.resolve.alias["@"] = path.resolve(__dirname);
+    return config;
+  },
+};
 
-export default nextConfig
+export default nextConfig;
