@@ -1,3 +1,4 @@
+import { createClientWithoutCookies } from "@/lib/supabase/static"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -5,12 +6,12 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 
 interface LegalPageProps {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }
 
 export async function generateMetadata({ params }: LegalPageProps): Promise<Metadata> {
-  const { slug } = await params
-  const supabase = await createClient()
+  const { slug } = params
+  const supabase = await createClientWithoutCookies()
 
   const { data: page } = await supabase
     .from("legal_pages")
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: LegalPageProps): Promise<Meta
 }
 
 export async function generateStaticParams() {
-  const supabase = await createClient()
+  const supabase = await createClientWithoutCookies()
   const { data: pages } = await supabase.from("legal_pages").select("slug").eq("published", true)
 
   return (
@@ -42,13 +43,18 @@ export async function generateStaticParams() {
   )
 }
 
-export const revalidate = 3600 // Revalidate every hour
+export const revalidate = 3600
 
 export default async function LegalPage({ params }: LegalPageProps) {
-  const { slug } = await params
+  const { slug } = params
   const supabase = await createClient()
 
-  const { data: page } = await supabase.from("legal_pages").select("*").eq("slug", slug).eq("published", true).single()
+  const { data: page } = await supabase
+    .from("legal_pages")
+    .select("*")
+    .eq("slug", slug)
+    .eq("published", true)
+    .single()
 
   if (!page) {
     notFound()
